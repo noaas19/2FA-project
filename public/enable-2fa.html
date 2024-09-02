@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enable 2FA</title>
+</head>
+<body>
+    <h1>Enable 2FA</h1>
+    <form id="enable2FAForm">
+        <label>User ID:</label>
+        <input type="text" id="userId" required>
+        <button type="submit">Enable 2FA</button>
+    </form>
+
+    <div id="qrCodeContainer"></div>
+
+    <script>
+        document.getElementById('enable2FAForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('userId').value;
+
+            const response = await fetch('/api/auth/enable-2fa', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userId })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                document.getElementById('qrCodeContainer').innerHTML = `<img src="${result.qrCodeUrl}" alt="QR Code" />`;
+            } else {
+                alert(result.message);
+            }
+        });
+    </script>
+</body>
+</html>

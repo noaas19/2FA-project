@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <form id="loginForm">
+            <label>Email:</label>
+            <input type="email" id="email" required>
+            <label>Password:</label>
+            <input type="password" id="password" required>
+            <button type="submit">Login</button>
+        </form>
+
+        <div id="qrCodeContainer" style="display: none;">
+            <h2>Setup 2FA</h2>
+            <p>Scan the QR code with your 2FA app:</p>
+            <img id="qrCodeImage" src="" alt="QR Code">
+        </div>
+
+        <div id="2faVerificationContainer" style="display: none;">
+            <h2>Verify 2FA</h2>
+            <p>Enter the 2FA code from your app:</p>
+            <input type="text" id="twoFactorCode" required>
+            <button id="verify2faBtn">Verify</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                // Hide login form after successful login
+                document.getElementById('loginForm').style.display = 'none';
+                
+                // Display QR code container
+                document.getElementById('qrCodeContainer').style.display = 'block';
+                document.getElementById('qrCodeImage').src = result.qrCodeUrl;
+
+                // Display 2FA verification container
+                document.getElementById('2faVerificationContainer').style.display = 'block';
+                document.getElementById('verify2faBtn').dataset.userId = result.userId;
+            } else {
+                alert(result.message);
+            }
+        });
+
+        document.getElementById('verify2faBtn').addEventListener('click', async () => {
+            const twoFactorCode = document.getElementById('twoFactorCode').value;
+            const userId = document.getElementById('verify2faBtn').dataset.userId;
+
+            const response = await fetch('/api/auth/verify-2fa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, token: twoFactorCode })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert('Login successful!');
+                window.location.href = '/index.html';
+            } else {
+                alert(result.message);
+            }
+        });
+    </script>
+</body>
+</html>
